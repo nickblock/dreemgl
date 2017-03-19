@@ -220,17 +220,20 @@ define.class('$system/base/texture', function(exports){
 			return undefined
 		}
 
-		gltex.updateid = this.updateid
-		// set up sampler parameters
-		gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl[samplerdef.MIN_FILTER])
-		gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl[samplerdef.MAG_FILTER])
+		gltex.updateid = this.updateid;
 
-		gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl[samplerdef.WRAP_S])
-		gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl[samplerdef.WRAP_T])
-
-		if(samplerdef.MIN_FILTER === 'LINEAR_MIPMAP_NEAREST'){
-			gl.generateMipmap(gl.TEXTURE_2D)
-		}
+		if (int.isPowerOfTwo(this.size[0]) && int.isPowerOfTwo(this.size[1]) && samplerdef.MIN_FILTER === 'LINEAR_MIPMAP_NEAREST') {
+	    // the dimensions are power of 2 so generate mips and turn on 
+	    // tri-linear filtering.
+	    gl.generateMipmap(gl.TEXTURE_2D);
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+	  } else {
+	    // at least one of the dimensions is not a power of 2 so set the filtering
+	    // so WebGL will render it.
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	  }
 
 		this[samplerid] = gltex
 		return gltex
